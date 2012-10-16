@@ -7,10 +7,8 @@ class XMLLibraryParser:
 		self.dictionary = self.parser(lines)
 		
 	def getValue(self,restOfLine):
-		value = re.sub("<.*?>","",restOfLine)
-		u = unicode(value,"utf-8")
-		cleanValue = u.encode("ascii","xmlcharrefreplace")
-		return cleanValue
+		value = re.sub("<.*?>","",restOfLine.replace('&#38;','&'))
+		return unicode(value,"utf-8")
 
 	def keyAndRestOfLine(self,line):
 		rawkey = re.search('<key>(.*?)</key>',line).group(0)
