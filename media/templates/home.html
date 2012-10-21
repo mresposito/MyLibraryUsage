@@ -1,0 +1,20 @@
+{% extends "base.html" %}
+{% block content %}
+<script type="text/javascript" src="http://code.jquery.com/jquery-latest.pack.js"></script>
+
+<h1>Upload your music library</h1>
+<p><input type=file name=image onchange="updateFilename(this.value)"></p>
+<p>The name of the file you picked is: <span id="filename">(none)</span></p>
+<p class="submitting">Loading your file</p>
+<script>
+ function updateFilename(path) {
+   {# var name = extractFilename(path); #}
+   {# document.getElementById('filename').textContent = name; #}
+    var postdata = {
+      xml: path,
+    };
+    $.post('/upload_file/',postdata,function(data) {location.reload();});
+ }
+</script>
+
+{% endblock %}

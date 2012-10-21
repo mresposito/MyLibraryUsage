@@ -8,7 +8,9 @@ import settings
 urlpatterns = patterns('',
     # Examples:
      url(r'^$', 'settings.views.home', name='home'),
+     url(r'^upload_file/$', 'settings.views.upload_file', name='this_file'),
      url(r'^statistics/$', 'settings.views.statistics', name='statistics'),
+     url(r'^artists/$', 'settings.views.artists', name='artists'),
    # url(r'^mre/', include('mre.foo.urls')),
 
     # Uncomment the admin/doc line below to enable admin documentation:

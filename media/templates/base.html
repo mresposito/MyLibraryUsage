@@ -1,0 +1,21 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <link rel="stylesheet" type="text/css" href="{{MEDIA_URL}}css/general.css">
+    <script language="javascript" type="text/javascript" src="{{MEDIA_URL}}js/jquery-1.8.2.min.js"></script>
+    <script language="javascript" type="text/javascript" src="{{MEDIA_URL}}jqplot/jquery.jqplot.min.js"></script>
+    <link rel="stylesheet" type="text/css" href="{{MEDIA_URL}}jqplot/jquery.jqplot.css" />
+    <script type= "text/javascript" src="{{MEDIA_URL}}plugins/jqplot.pieRenderer.min.js"></script>
+
+
+    <title>{% block title %}Mussage{% endblock %}</title>
+    <meta name="get to know your music">
+  </head>
+
+  <body>
+    <div id="content">
+      {% block content %}
+      {% endblock %}
+    </div>
+  </body>
+</html>

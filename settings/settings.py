@@ -5,7 +5,8 @@ DEBUG = True
 TEMPLATE_DEBUG = DEBUG
 SETTINGS_DIR = os.path.dirname(os.path.abspath(__file__))
 PROJECT_DIR = os.path.split(SETTINGS_DIR)[0]
-TEMP_DIR = os.path.join( PROJECT_DIR, "templates" )
+MEDIA_DIR = os.path.join( PROJECT_DIR, "media" )
+TEMP_DIR = os.path.join( MEDIA_DIR, "templates" )
 PUBLIC_DIR = os.path.join( PROJECT_DIR, "public_html" )
 WEB = False
 
@@ -55,7 +56,7 @@ USE_TZ = True
 if WEB:
   MEDIA_ROOT = PUBLIC_DIR
 else:
-  MEDIA_ROOT = TEMP_DIR
+  MEDIA_ROOT = MEDIA_DIR
 
 # URL that handles the media served from MEDIA_ROOT. Make sure to use a
 # trailing slash.
