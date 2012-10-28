@@ -1,0 +1,10 @@
+{% extends "base.html" %}
+{% block content %}
+
+<h2> {{found.name}} </h2>
+
+{% for artist in found.artists %}
+  {{forloop.counter}}) <a href="{{artist}}">{{artist.name}}</a>. Play count: {{artist.play_count}} <br>
+{% endfor %}
+{% endblock %}
+

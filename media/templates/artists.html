@@ -1,27 +1,25 @@
 {% extends "base.html" %}
 {% block content %}
 
-<a href="/statistics/"> Usage statistics </a>
-<a href="/artist/"> Artists statistics </a>
-<p>
-
-<h2> Artists </h2>
-{% for artist in library.top_artist %}
-  {{forloop.counter}}) {{artist.0}}. Play count: {{artist.1}} <br>
+<h2> Top Songs </h2>
+{% for song in library.top_song %}
+{{forloop.counter}}) <a href="{{song}}">{{song.name}}</a>. Play count: {{song.play_count}} <br>
 {% endfor %}
-<h2> Albums </h2>
+
+<h2> Top Albums </h2>
 {% for album in library.top_album %}
-<h3> {{forloop.counter}}) {{album.0}} by: {{album.2.0.artist}}. Total play count: {{album.1}}</h3>
+{{forloop.counter}}) <a href="{{album}}">{{album.name}}</a>. Play count: {{album.play_count}}<br>
 <img id="album_cover" src = {{album.3}} width="150px" height="150px">
-  {% for song in album.2 %}
-    {{forloop.counter}}. {{song.name}}. Play count: {{song.play_count}}<br>
-  {% endfor %}
 {% endfor %}
-</p>
-<h2> Genre </h2>
+
+<h2> Top Artists </h2>
+{% for artist in library.top_artist %}
+{{forloop.counter}}) <a href="{{artist}}">{{artist.name}}</a>. Play count: {{artist.play_count}} <br>
+{% endfor %}
+
+<h2> Top Genre </h2>
 {% for genre in library.top_genre %}
-  {{forloop.counter}}) {{genre.0}}. Play count: {{genre.1}}<br>
+{{forloop.counter}}) <a href="{{genre}}">{{genre.name}}</a>. Play count: {{genre.play_count}}<br>
 {% endfor %}
-
+<a id="showMore" href='/top_listen/?toShow={{toShow}}'>Show more </a>
 {% endblock %}
-

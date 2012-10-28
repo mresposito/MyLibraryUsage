@@ -62,38 +62,35 @@ div#content{
   text-align: left;
 width: 800px;
 margin: 0px auto;
-
-div.footer {
-  background-color: #000000;
-  color: white;
-  text-decoration: none;
-  border-top: 1px solid gray; /* TODO: fix */
-  box-shadow: 3px 3px 3px rgba(0, 0, 0, 0.35);
-  text-align: center;
 }
 
-.navbar {
-  margin: 07px;
-  line-height: 0px;
-  text-align:left;
-  font-size: 24px;
-  display: block;
-}
-a.nav_bar {
-  color: black;
-}
-nav { 
-  text-align: right;
-}
-#me {
-  border: 2px solid white;
-  box-shadow: 2px 2px 5px rgba(0, 0, 0, 0.35);
+/* div.footer { */
+/*   background-color: #000000; */
+/*   color: white; */
+/*   text-decoration: none; */
+/*   border-top: 1px solid gray; /* TODO: fix */ */
+/*   box-shadow: 3px 3px 3px rgba(0, 0, 0, 0.35); */
+/*   text-align: center; */
+/* } */
+
+ul#list-nav {
+  margin:20px;
+  padding:0;
+  list-style:none;
+  width:500px;
 }
 
-div.lines{
-  line-height:6px;
+ul#list-nav li {
+  display:inline
 }
 
-hr {
-  margin: 1px;
+ul#list-nav li a {
+ text-decoration:none;
+ padding:10px 0;
+ width:230px;
+ background:#4169E1;
+ color:#eee;
+ float:left;
+ text-align:center;
+ border-left:1px solid #fff;
 }

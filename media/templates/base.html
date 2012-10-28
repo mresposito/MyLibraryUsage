@@ -7,10 +7,18 @@
     <link rel="stylesheet" type="text/css" href="{{MEDIA_URL}}jqplot/jquery.jqplot.css" />
     <script type= "text/javascript" src="{{MEDIA_URL}}plugins/jqplot.pieRenderer.min.js"></script>
 
-
-    <title>{% block title %}Mussage{% endblock %}</title>
-    <meta name="get to know your music">
+    <meta name="Share your music like never before">
   </head>
+
+    <title>{% block title %}Musicbook{% endblock %}</title>
+    <ul id="list-nav">
+      <li><a href="/statistics/"> Usage statistics              </a></li>
+      <li><a href="/top_listen/?toShow=10/"> Artists statistics </a></li>
+      <li><a href="/upload_library/"> Upload library            </a></li>
+      <li><a href="/logout/"> Log out                           </a></li>
+      <li><a href="/About/"> About                              </a></li>
+    </ul>
+    <br>
 
   <body>
     <div id="content">
