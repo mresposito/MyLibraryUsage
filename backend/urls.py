@@ -21,7 +21,7 @@ urlpatterns = patterns('',
     # Uncomment the admin/doc line below to enable admin documentation:
     # url(r'^admin/doc/', include('django.contrib.admindocs.urls')),
     url(r'^login/$', 'django.contrib.auth.views.login'),
-    url(r'^logout/$', 'django.contrib.auth.views.logout', {'next_page': '/start/'}),
+    url(r'^logout/$', 'django.contrib.auth.views.logout', {'next_page': '/'}),
     url(r'^password_change/$', 'django.contrib.auth.views.password_change',{'post_change_redirect': '/start/'}),
     url(r'^password_change_done/$', 'django.contrib.auth.views.password_change_done'),
 

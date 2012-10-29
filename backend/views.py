@@ -16,7 +16,6 @@ def home(request):
     return HttpResponseRedirect("/upload_library/")
 
   librarian = Librarian ( request.user.library )
-  # librarian. createEntries()
 
   return HttpResponseRedirect("/statistics/")
 
@@ -25,7 +24,7 @@ def statistics(request):
     return HttpResponseRedirect("/login/")
   if not request.user.get_profile().has_library:
     return HttpResponseRedirect("/upload_library/")
-
+  print "user library:",  request.user.library 
   librarian = Librarian ( request.user.library )
   librarian. usageStats()
   
@@ -88,6 +87,7 @@ def upload_library(request):
 
       librarian = Librarian ( request.user.library )
       librarian. addSongsfromXML( request.user.itunes_library )
+      librarian. createEntries()
 
       return HttpResponseRedirect('/statistics/')
     print "INVALID FORM"
@@ -99,7 +99,7 @@ def upload_library(request):
       context_instance=RequestContext(request))
 
 def handle_uploaded_file(f, dst):
-  print " loading file"
+  print "loading file"
   with open( dst, 'wb+') as destination:
     for chunk in f.chunks():
-        destination.write(chunk)
+      destination.write(chunk)

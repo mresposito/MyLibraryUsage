@@ -32,13 +32,15 @@ class Librarian:
 
   def addSongsfromXML( self, library ):
     """ parses itunes library, adds songs into DB """
-    print "parsing library"
+    self.startTimer( "parsing library")
     pl = XMLLibraryParser( library )
-    print "writing library to database"
+    self.stopTimer()
+    self.startTimer( "writing library to database")
     for song,attributes in pl.dictionary.iteritems():
       song = Song(attributes) 
       self.session.add( Song( attributes ) )
     # update changes to db
+    self.stopTimer()
     print "committing session"
     self.commitSession()
 
@@ -84,27 +86,50 @@ class Librarian:
     obj. artists = self.link( obj, lambda x:x.artist, Artist ) 
 
   def create(self, attribute, toCreate):
-    albums_list = self.session.query( attribute(Song) ).distinct()
-    for album in albums_list:
-      songs =  self.session.query(Song).filter( attribute(Song)== attribute(album) )
-      album_obj = toCreate( album[0] )
-      album_obj. play_count = sumPlayCountQuery( songs )
-      album_obj. songs = songs.all()
-      self. session.add( album_obj )
+    songs= self.session.query( Song ).order_by( attribute(Song))
+    album_to_add = toCreate ( attribute( songs[0] ) )
+    total = 0
+
+    for song in songs:
+      if album_to_add.name != attribute( song ):
+        album_to_add.play_count = total
+        self.session.add( album_to_add  )
+        album_to_add = toCreate( attribute(song))
+        total = 0
+
+      album_to_add.songs.append( song )
+      total += song.play_count
+  
     self.session.commit()  
 
   def calculatePlayCount( self ):
     self.startTimer("start count")
     print "hey"
     self.stopTimer()
-
+  
+  def createNew(self, attribute, toCreate):
+    albums_list = self.session.query( attribute(Song) ).distinct()
+    for album in albums_list:
+      self. session.add( toCreate( album[0] ) )
+   
   def createEntries ( self ):
+    self.startTimer( "counting" )
+    self.create ( lambda x:x.genre  , lambda x: Genre   ( x) )
+    self.create ( lambda x:x.artist , lambda x: Artist ( x) )
+    self.create ( lambda x:x.album  , lambda x: Album(x) )
+    # self.link()
+    self.session.commit()  
+    self.stopTimer()
+
+  def createEntriesOld( self ):
     """ creates Album, Artist, Genre classes.
         links them and calculates playcount """
     print "starting creating"
     self.startTimer( "counting" )
     self.create ( lambda x:x.genre, lambda x: Genre(x) )
+    self.stopTimer()
     self.create ( lambda x:x.artist, lambda x: Artist(x) )
+    self.stopTimer()
     self.create ( lambda x:x.album, lambda x: Album(x) )
     self.stopTimer()
     print "Finish creating, starting to link"
@@ -173,6 +198,7 @@ class Librarian:
   
   ##### MISCELANEOUS
   def startTimer(self, message):
+    print message
     self.timer = time.time()
 
   def stopTimer(self ):
