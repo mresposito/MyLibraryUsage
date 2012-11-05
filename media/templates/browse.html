@@ -2,9 +2,33 @@
 {% block content %}
 
 <h2> {{found.name}} </h2>
+{% if not data%}
+by: <a href="{{found.Artist}}">{{found.artist}}</a> in album: <a href="{{found.Album}}">{{found.album}}</a>.
+{% endif %}
 
-{% for artist in found.artists %}
-  {{forloop.counter}}) <a href="{{artist}}">{{artist.name}}</a>. Play count: {{artist.play_count}} <br>
+{% if found.image%}
+<img src="{{found.image}}" width=300px height=300px><br>
+{% endif %}
+{% if data.albums %}
+Albums: <br>
+{% for album in data.albums %}
+<a href="{{album.Album}}">{{album.album}}</a>. Play count: {{album.Album.play_count}} <br>
 {% endfor %}
-{% endblock %}
+{% endif  %}
 
+{% if data.artists %}
+Artist: <br>
+{% for artist in data.artists %}
+  {{forloop.counter}}) <a href="{{artist.Artist}}">{{artist.artist}}</a>. Play count: {{artist.Artist.play_count}} <br>
+{% endfor %}
+{% endif  %}
+
+{% if data.genres %}
+Genre: <br>
+{% for genre in data.genres %}
+  <a href="{{genre.Genre}}">{{genre.genre}}</a><br>
+{% endfor %}
+{% endif  %}
+
+
+{% endblock %}

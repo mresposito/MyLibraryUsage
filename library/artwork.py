@@ -15,14 +15,20 @@ from urlparse import urlparse
 from bs4 import BeautifulSoup, SoupStrainer
 # song model
 from Library import Song
+# from crawlControl import readJsonPage
 
 socket.setdefaulttimeout(3) #Set a 20 second timeout for Urllib 
-def getArtwork( album ):
-  album_query = process_query( album[0] +" cover") #TODO verify also works for albumart
-  
+
+def getImage( query, kind ):
+  if kind == "album":
+    album_query = process_query( query +" cover")
+  else:
+    album_query = process_query( query +" band")
+  print "Queryng for: ", album_query
+
   try:
     artwork_url = queryGoogle( album_query )
-    if artwork_url == None:
+    if artwork_url == None and kind == "album":
       artwork_url = queryAlbumart( album_query )
   except urllib2.URLError:
     sys.stderr.write("Could not connect to the internet\n")
@@ -54,14 +60,7 @@ def queryGoogle( album ):
   url = ('https://ajax.googleapis.com/ajax/services/search/images?' +
          'v=1.0&q=' + album)
 
-  request = urllib2.Request(url, None, {'Referer':None})
-  try:
-    response = urllib2.urlopen(request).read()
-  except urllib2.HTTPError:
-    sys.stderr.write("bad request: %s" % url)
-    return None
-
-  results = simplejson.loads( response )
+  results = requestJsonUrl( url )
   try: 
     return fetchResults( results['responseData'] )
   except KeyError:
@@ -78,6 +77,26 @@ def exists(path):
     return True
   except:
     return False
+
+def loadHTMLURl ( url ):
+  page = urllib2.urlopen(url)
+  page = page.read()
+  return BeautifulSoup( page )
+
+def requestJsonUrl ( url ):
+  request = urllib2.Request(url, None, {'Referer':None})
+  try:
+    response = urllib2.urlopen(request).read()
+  except urllib2.HTTPError:
+    sys.stderr.write("bad request: %s" % url)
+    return None
+
+  try:
+    return simplejson.loads( response )
+  except JSONDecodeError:
+    sys.stderr.write("could not parse: \n %s \n" % response )
+    return None
+
 
 def fetchResults( responseData ):
   """ gets the correct results """

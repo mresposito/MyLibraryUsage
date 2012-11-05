@@ -15,9 +15,11 @@ from Library import Base, Song, Artist, Album, Genre
 from sqlalchemy     import create_engine
 from sqlalchemy.orm import sessionmaker
 # artwork
-# from artwork import getArtwork
+from library.artwork import getImage
+# colors
+import colorsys
+from webcolors import rgb_to_hex
 
- 
 class Librarian:
   """ class to manipulate library"""
   numberSongs = 0
@@ -48,59 +50,65 @@ class Librarian:
     request = request.replace('/','').split("_")
     cls = request[0]
     request_id = int(request[1])
-    print "request: %s id: %d " %( cls, request_id)
+
     toReturn = None
+    data     = None
+
     if cls == "song":
-      toReturn = self.session.query(Song).filter(Song.id == request_id).all()
+      toReturn = self.session.query(Song).filter(Song.id == request_id).all()[0]
+
     elif cls == "album":
-      toReturn = self.session.query(Album).filter(Album.id == request_id).all()
-      self.linkAlbum( toReturn )
+      toReturn = self.session.query(Album).filter(Album.id == request_id).all()[0]
+
+      artists  = self.session.query(Song).filter( Song.album == toReturn.name ). \
+                  distinct(Song.artist)
+      genres = self.session.query(Song).filter( Song.album == toReturn.name ). \
+                  distinct(Song.genre)
+      if toReturn.image == None and toReturn != None:
+        toReturn.image = getImage( "%s %s" % (toReturn.name, toReturn.songs[0].Artist.name), "album" )
+
+      data = { 'artists': sanitize(artists, lambda x:x.artist),\
+                'genres': sanitize(genres , lambda x:x.genre )}
+
     elif cls == "artist":
-      toReturn = self.session.query(Artist).filter(Artist.id == request_id).all()
-      self.linkArtist( toReturn )
+      toReturn = self.session.query(Artist).filter(Artist.id == request_id).all()[0]
+
+      albums  = self.session.query(Song).filter( Song.artist == toReturn.name ). \
+                  distinct()
+      genres = self.session.query(Song).filter( Song.artist == toReturn.name ). \
+                  distinct()
+
+      data = { 'genres': sanitize(genres, lambda x:x.genre) ,\
+               'albums': sanitize(albums, lambda x:x.album) }
+
+      if toReturn.image == None and toReturn != None:
+        toReturn.image = getImage( toReturn.name, "artist" )
+
     elif cls == "genre":
-      toReturn = self.session.query(Genre).filter(Genre.id == request_id).all()
-      self.linkGenre ( toReturn )
-    return toReturn
+      toReturn  = self.session.query(Genre).filter(Genre.id == request_id).all()[0]
 
-  def link( self, obj, attribute, toLink ):
-    needles = self.session.query( attribute(Song) ).filter( attribute(Song) == obj.name )
-    haysack = []
-    for needle in needles:
-      haysack.append( self.session.query( toLink ).filter( toLink.name == needle[0] ) )
-    return haysack
+      artists  = self.session.query(Song).filter( Song.genre == toReturn.name ). \
+                  distinct()
+      albums   = self.session.query(Song).filter( Song.genre == toReturn.name ). \
+                  distinct()
 
-  def linkAlbum( self, obj ):
-    obj = obj[0]
-    obj. artists = self.link( obj, lambda x:x.artist, Artist ) 
-    # obj. genres  = self.link( obj, lambda x:x.genre , Genre  ) 
+      data = { 'artists': sanitize(artists, lambda x:x.artist),\
+                'albums': sanitize(albums , lambda x:x.album )}
 
-  def linkArtist( self, obj ):
-    obj = obj[0]
-    obj. albums  = self.link( obj, lambda x:x.album , Album  ) 
-    # obj. genres  = self.link( obj, lambda x:x.genre , Genre  ) 
-
-  def linkGenre( self, obj ):
-    obj = obj[0]
-    obj. albums  = self.link( obj, lambda x:x.album , Album  ) 
-    obj. artists = self.link( obj, lambda x:x.artist, Artist ) 
+    self.commitSession()
+    return toReturn, data
 
   def create(self, attribute, toCreate):
     songs= self.session.query( Song ).order_by( attribute(Song))
     album_to_add = toCreate ( attribute( songs[0] ) )
-    total = 0
 
     for song in songs:
       if album_to_add.name != attribute( song ):
-        album_to_add.play_count = total
         self.session.add( album_to_add  )
         album_to_add = toCreate( attribute(song))
-        total = 0
 
       album_to_add.songs.append( song )
-      total += song.play_count
-  
-    self.session.commit()  
+      album_to_add.play_count += song.play_count
 
   def calculatePlayCount( self ):
     self.startTimer("start count")
@@ -111,28 +119,14 @@ class Librarian:
     albums_list = self.session.query( attribute(Song) ).distinct()
     for album in albums_list:
       self. session.add( toCreate( album[0] ) )
-   
+
   def createEntries ( self ):
     self.startTimer( "counting" )
-    self.create ( lambda x:x.genre  , lambda x: Genre   ( x) )
-    self.create ( lambda x:x.artist , lambda x: Artist ( x) )
-    self.create ( lambda x:x.album  , lambda x: Album(x) )
-    # self.link()
-    self.session.commit()  
+    self.create ( lambda x:x.genre  , lambda x: Genre ( x))
+    self.create ( lambda x:x.artist , lambda x: Artist( x))
+    self.create ( lambda x:x.album  , lambda x: Album ( x))
+    self.session.commit()
     self.stopTimer()
-
-  def createEntriesOld( self ):
-    """ creates Album, Artist, Genre classes.
-        links them and calculates playcount """
-    print "starting creating"
-    self.startTimer( "counting" )
-    self.create ( lambda x:x.genre, lambda x: Genre(x) )
-    self.stopTimer()
-    self.create ( lambda x:x.artist, lambda x: Artist(x) )
-    self.stopTimer()
-    self.create ( lambda x:x.album, lambda x: Album(x) )
-    self.stopTimer()
-    print "Finish creating, starting to link"
 
   def commitSession( self ):
     self.session.commit()
@@ -164,19 +158,22 @@ class Librarian:
     # bit rates
     bit_rates = [ 320, 256, 224, 192, 160, 128, 122, 96, 80 ]
 
+    colors = createColors( (75,0,130), 9,2 )
     self.quality = []
-    for rate in bit_rates:
+    for (i, rate) in enumerate(bit_rates):
       query = self.session.query(Song).filter( Song.bit_rate == rate ).count()
-      triple = ( rate, query, x100( query, self.numberSongs ) )
-      if triple[2] > 3:
-        self.quality.append( triple )
+      if x100( query, self.numberSongs) > 2: # filter lower rate
+        self.quality.append( ( query, "%d kbps" %rate, colors[i] ))
 
     self.lenght = []
+    colors = createColors( (50,0,240), 9, 1 )
+    print colors
     for i in range(0,8):
       toMinutes = lambda x:x*60*1000
-      query = self.session.query(Song).filter( Song.total_time >= toMinutes(i), Song.total_time < toMinutes(i+1) ).count()
-      triple = ( i, query, x100( query, self.numberSongs ) )
-      self.lenght.append( triple )
+      query = self.session.query(Song).filter( Song.total_time. \
+          between( toMinutes(i),toMinutes(i+1) )).count()
+      message = "%d" % (i+1)
+      self.lenght.append( (query, message, colors[i ]) )
 
   def generateLists( self, toShow ):
     top_song  = sorted( self.session.query(Song), \
@@ -258,3 +255,27 @@ def convertToDMHWrapped( time, measure ):
   string = "%d " % num + message +" " 
 
   return string + convertToDMHWrapped( time - num*unit, measure - 1 )
+
+def createColors ( baseColor, number, space ):
+  if space == 0:
+    generarate = lambda x: (baseColor[0]+x , baseColor[1]    , baseColor[2])
+  elif space == 1:
+    generarate = lambda x: (baseColor[0]   , baseColor[1] +x , baseColor[2])
+  else:
+    generarate = lambda x: (baseColor[0]+x , baseColor[1]    , baseColor[2]+x)
+
+  step = (255-baseColor[space]) / number
+  colors = []
+  for i in range(number):
+    toAdd =  generarate( step * i )
+    colors.append( toAdd )
+  return map( rgb_to_hex, colors )
+
+def sanitize( query, action ): #TODO awful logic, this has to be cleaned
+  ret = []
+  retNames = []
+  for element in query:
+    if action(element) not in retNames:
+      retNames.append( action(element) )
+      ret.append( element )
+  return sorted( ret, key=lambda x:x.play_count, reverse=True)

@@ -1,8 +1,11 @@
-from django.http import HttpResponse, HttpResponseForbidden, HttpResponseServerError, HttpResponseRedirect
+# django stuff
+from django.http import HttpResponse, HttpResponseForbidden, HttpResponseServerError, HttpResponseRedirect, Http404
 from django.shortcuts import render, render_to_response
 from django.template import RequestContext
+# utils
 import settings
-import os, sys, pdb
+import os, sys, pdb, json
+# library links
 from library.Librarian import Librarian
 from backend.forms  import LibraryForm
 
@@ -24,11 +27,11 @@ def statistics(request):
     return HttpResponseRedirect("/login/")
   if not request.user.get_profile().has_library:
     return HttpResponseRedirect("/upload_library/")
-  print "user library:",  request.user.library 
+
   librarian = Librarian ( request.user.library )
   librarian. usageStats()
-  
-  return render_to_response('statistics.html', {'library':librarian }, \
+  songQuality = getDataToJson( librarian. quality )
+  return render_to_response('statistics.html', {'library':librarian, 'songQuality':songQuality,'lenght': getDataToJson( librarian. lenght ) }, \
       context_instance=RequestContext(request))
 
 def topListen(request):
@@ -42,7 +45,6 @@ def topListen(request):
   except ValueError:
     toShow = 10
 
-  print toShow
   if toShow < 10:
     toShow = 10
   librarian = Librarian ( request.user.library )
@@ -56,12 +58,16 @@ def browseLibrary( request ):
     return HttpResponseRedirect("/login/")
 
   librarian = Librarian ( request.user.library )
-  found = librarian. getRequest( request.path )
-  print found
+  try:
+    found, data = librarian. getRequest( request.path )
+  except IndexError:
+    raise Http404
+
+  print "data:", data
   if found == None:
     sys.stderr.write("Page not found, at %s\n" % request.path)
 
-  return render_to_response('browse.html', {'found': found[0] }, \
+  return render_to_response('browse.html', { 'found': found, 'data':data }, \
       context_instance=RequestContext(request))
 
 @csrf_exempt
@@ -82,7 +88,6 @@ def upload_library(request):
   if request.method == 'POST':
     form = LibraryForm(request.POST, request.FILES)
     if form.is_valid():
-      print "valid form"
       handle_uploaded_file(request.FILES['library'], request.user.itunes_library)
 
       librarian = Librarian ( request.user.library )
@@ -90,16 +95,18 @@ def upload_library(request):
       librarian. createEntries()
 
       return HttpResponseRedirect('/statistics/')
-    print "INVALID FORM"
   else:
-    print "GET METHOD"
     form = LibraryForm()
 
   return render_to_response('upload_library.html', {'form': form},
       context_instance=RequestContext(request))
 
+### UTIL FUNCTIONS ###
 def handle_uploaded_file(f, dst):
   print "loading file"
   with open( dst, 'wb+') as destination:
     for chunk in f.chunks():
       destination.write(chunk)
+
+def getDataToJson( data ):
+  return json.dumps( data )

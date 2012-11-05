@@ -11,13 +11,13 @@ class Song( Base ):
   __tablename__ = 'song'
   id   = Column( Integer, primary_key = True )
 
-  name          = Column( String)
-  artist        = Column( String)
+  name          = Column( String, index = True )
+  artist        = Column( String, index = True )
   album_artist  = Column( String)
   composer      = Column( String)
-  album         = Column( String)
+  album         = Column( String, index = True )
   genre         = Column( String)
-  kind          = Column( String)
+  kind          = Column( String, index = True )
   date_modified = Column( String)
   date_added    = Column( String)
 
@@ -29,7 +29,7 @@ class Song( Base ):
   sample_rate   = Column( Integer)
   rating        = Column( Integer)
   album_rating  = Column( Integer)
-  play_count    = Column( Integer)
+  play_count    = Column( Integer, index = True )
 
   # many to one
   album_id  = Column(Integer, ForeignKey( 'album.id'))
@@ -76,15 +76,15 @@ class Album( Base ):
   __tablename__ = 'album'
   id   = Column( Integer, primary_key = True )
 
-  name = Column( String)
+  name = Column( String, index = True )
   play_count = Column(Integer)
-  artwork = Column( String )
+  image   = Column( String )
+  year    = Column( Integer)
 
   # one to many
   songs = relationship('Song', backref=backref("Album") )
-  # many to one
+  # this is used in the image crawler
   artist_id = Column(Integer, ForeignKey('artist.id'))
-  genre_id  = Column(Integer, ForeignKey( 'genre.id'))
 
   def __init__(self, name):
     self. name = name
@@ -97,14 +97,13 @@ class Artist( Base ):
   __tablename__ = 'artist'
   id   = Column( Integer, primary_key = True )
 
-  name = Column( String)
+  name       = Column( String, index = True )
   play_count = Column( Integer )
+  image      = Column( String  )
 
   # one to many
-  songs   = relationship('Song'  , backref=backref("Artist") )
-  albums  = relationship('Album' , backref=backref("Artist") )
-  # many to one
-  genre_id  = Column(Integer, ForeignKey( 'genre.id'))
+  songs   = relationship('Song' , backref=backref("Artist") )
+  albums  = relationship('Album', backref=backref("Artist") )
 
   def __init__(self, name):
     self. name = name
@@ -117,12 +116,10 @@ class Genre( Base ):
   __tablename__ = 'genre'
   id   = Column( Integer, primary_key = True )
 
-  name = Column( String)
+  name = Column( String, index = True )
   play_count = Column( Integer )
   # one to many
   songs   = relationship('Song'  , backref=backref("Genre") )
-  albums  = relationship('Album' , backref=backref("Genre") )
-  artists = relationship('Artist', backref=backref("Genre") )
 
   def __init__(self, name):
     self. name = name

@@ -9,7 +9,6 @@
 <h2> Top Albums </h2>
 {% for album in library.top_album %}
 {{forloop.counter}}) <a href="{{album}}">{{album.name}}</a>. Play count: {{album.play_count}}<br>
-<img id="album_cover" src = {{album.3}} width="150px" height="150px">
 {% endfor %}
 
 <h2> Top Artists </h2>
@@ -22,4 +21,5 @@
 {{forloop.counter}}) <a href="{{genre}}">{{genre.name}}</a>. Play count: {{genre.play_count}}<br>
 {% endfor %}
 <a id="showMore" href='/top_listen/?toShow={{toShow}}'>Show more </a>
+
 {% endblock %}
