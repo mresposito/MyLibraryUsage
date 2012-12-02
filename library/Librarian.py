@@ -19,6 +19,7 @@ from library.artwork import getImage
 # colors
 import colorsys
 from webcolors import rgb_to_hex
+from utils.timer import Timer
 
 class Librarian:
   """ class to manipulate library"""
@@ -34,16 +35,14 @@ class Librarian:
 
   def addSongsfromXML( self, library ):
     """ parses itunes library, adds songs into DB """
-    self.startTimer( "parsing library")
-    pl = XMLLibraryParser( library )
-    self.stopTimer()
-    self.startTimer( "writing library to database")
-    for song,attributes in pl.dictionary.iteritems():
-      song = Song(attributes) 
-      self.session.add( Song( attributes ) )
+    with Timer( "parsing library"):
+      pl = XMLLibraryParser( library )
+
+    with Timer( "writing library to database" ):
+      for song,attributes in pl.dictionary.iteritems():
+        song = Song(attributes) 
+        self.session.add( Song( attributes ) )
     # update changes to db
-    self.stopTimer()
-    print "committing session"
     self.commitSession()
 
   def getRequest(self, request):
@@ -274,6 +273,7 @@ def createColors ( baseColor, number, space ):
 def sanitize( query, action ): #TODO awful logic, this has to be cleaned
   ret = []
   retNames = []
+  # filter ( lambda x: action(x) not in retNames )
   for element in query:
     if action(element) not in retNames:
       retNames.append( action(element) )

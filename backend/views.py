@@ -2,41 +2,35 @@
 from django.http import HttpResponse, HttpResponseForbidden, HttpResponseServerError, HttpResponseRedirect, Http404
 from django.shortcuts import render, render_to_response
 from django.template import RequestContext
+from django.contrib.auth.decorators import login_required
 # utils
 import settings
 import os, sys, pdb, json
 # library links
 from library.Librarian import Librarian
 from backend.forms  import LibraryForm
+from decorators     import has_library
 
-#cross site forgery exempt
-from django.views.decorators.csrf import csrf_exempt
-
+@login_required
+@has_library
 def home(request):
-  if not request.user.is_authenticated():
-    return HttpResponseRedirect("/login/")
-  if not request.user.get_profile().has_library:
-    return HttpResponseRedirect("/upload_library/")
-
   librarian = Librarian ( request.user.library )
 
   return HttpResponseRedirect("/statistics/")
 
+@login_required
+@has_library
 def statistics(request):
-  if not request.user.is_authenticated():
-    return HttpResponseRedirect("/login/")
-  if not request.user.get_profile().has_library:
-    return HttpResponseRedirect("/upload_library/")
 
   librarian = Librarian ( request.user.library )
   librarian. usageStats()
   songQuality = getDataToJson( librarian. quality )
+
   return render_to_response('statistics.html', {'library':librarian, 'songQuality':songQuality,'lenght': getDataToJson( librarian. lenght ) }, \
       context_instance=RequestContext(request))
 
+@login_required
 def topListen(request):
-  if not request.user.is_authenticated():
-    return HttpResponseRedirect("/login/")
 
   try:
     toShow = int(request.GET.get('toShow').rstrip('/'))
@@ -53,9 +47,9 @@ def topListen(request):
   return render_to_response('artists.html', {'library':librarian, 'toShow':toShow+10}, \
       context_instance=RequestContext(request))
 
+@login_required
+@has_library
 def browseLibrary( request ):
-  if not request.user.is_authenticated():
-    return HttpResponseRedirect("/login/")
 
   librarian = Librarian ( request.user.library )
   try:
@@ -63,17 +57,11 @@ def browseLibrary( request ):
   except IndexError:
     raise Http404
 
-  print "data:", data
-  if found == None:
-    sys.stderr.write("Page not found, at %s\n" % request.path)
-
   return render_to_response('browse.html', { 'found': found, 'data':data }, \
       context_instance=RequestContext(request))
 
-@csrf_exempt
+@login_required
 def upload_library(request):
-  if not request.user.is_authenticated():
-    return HttpResponseRedirect("/login/")
   
   # setup user or removes old library
   if not request.user.has_library:

@@ -1,0 +1,9 @@
+import os, sys
+path = (os.path.dirname(os.path.abspath(__file__)))[0]
+sys.path.append(path)
+from library.Librarian import Librarian
+
+librarian = Librarian('tmp.db')
+librarian.addSongsfromXML('../library.xml')
+librarian.createEntries()
+os.remove('tmp.db')

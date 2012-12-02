@@ -177,3 +177,4 @@ LOGGING = {
 }
 # AUTHENTICATION
 AUTH_PROFILE_MODULE = 'backend.UserProfile'
+LOGIN_URL ='/login/'
