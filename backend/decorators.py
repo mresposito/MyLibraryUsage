@@ -1,6 +1,7 @@
 #!/usr/bin/env python
 # coding: utf-8
 """ main file """
+from django.http import HttpResponseRedirect
 
 def has_library( fun ):
   def wrapper(*args, **kwargs):
